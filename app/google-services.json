@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "126108961773",
+    "firebase_url": "https://chat-28592-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "chat-28592",
+    "storage_bucket": "chat-28592.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:126108961773:android:17b6f38947ba32297235e4",
+        "android_client_info": {
+          "package_name": "com.example.lab_5"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDixZ4WPwztUEYWccmxPK7sFhs-ITWfd74"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
