@@ -46,11 +46,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextField
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
@@ -218,65 +224,101 @@ fun PreviewMessageCard() {
 //    }
 }
 
+@ExperimentalMaterial3Api
 @Composable
 fun Conversation(
     messages: List<Message>,
     userInfos: List<UserInfo>,
     onSendMessage: (String) -> Unit,
-    onLogout: () -> Unit // Добавляем функцию для разлогинивания
+    onLogout: () -> Unit
 ) {
     var messageText by remember { mutableStateOf("") }
 
     LazyColumn {
-        // Добавляем кнопку разлогинивания в начало списка
+        // Кнопка разлогинивания вверху списка
         item {
-            Button(
-                onClick = {
-                    // Вызываем функцию разлогинивания при нажатии кнопки
-                    onLogout()
-                },
+            Box(
                 modifier = Modifier
-                    .padding(16.dp)
                     .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(16.dp)
             ) {
-                Text("Выйти")
+                IconButton(
+                    onClick = {
+                        onLogout()
+                    },
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color.Gray)
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.ic_logout),
+                        contentDescription = "Logout",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .border(1.5.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp))
+                    )
+                }
             }
         }
 
-        // Далее отображаем сообщения
         items(messages) { message ->
+            // Отображаем сообщения
             MessageCard(message, userInfos)
         }
 
-        // Добавляем TextField и кнопку отправки в конец списка
+        // Кнопка отправки в конце списка
         item {
-            TextField(
-                value = messageText,
-                onValueChange = {
-                    messageText = it
-                },
-                label = { Text("Введите сообщение") },
+            Box(
                 modifier = Modifier
-                    .padding(16.dp)
                     .fillMaxWidth()
-            )
-
-            Button(
-                onClick = {
-                    if (messageText.isNotBlank()) {
-                        onSendMessage(messageText)
-                        messageText = ""
-                    }
-                },
-                modifier = Modifier
+                    .background(Color.White)
                     .padding(16.dp)
-                    .fillMaxWidth()
             ) {
-                Text("Отправить")
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Поле ввода
+                    TextField(
+                        value = messageText,
+                        onValueChange = {
+                            messageText = it
+                        },
+                        label = { Text("Введите сообщение") },
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 8.dp)
+                    )
+
+                    // Кнопка отправки
+                    IconButton(
+                        onClick = {
+                            if (messageText.isNotBlank()) {
+                                onSendMessage(messageText)
+                                messageText = ""
+                            }
+                        }
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.ic_send),
+                            contentDescription = "Send",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .border(1.5.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp))
+                        )
+                    }
+                }
             }
         }
     }
 }
+
 
 @Preview
 @Composable
