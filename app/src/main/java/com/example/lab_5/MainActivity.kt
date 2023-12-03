@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class,
+@file:OptIn(
     ExperimentalMaterial3Api::class
 )
 
@@ -136,43 +136,25 @@ class MainActivity : ComponentActivity() {
                         userInfos = userInfos, // Передаем userInfos в Conversation
                         onSendMessage = { newMessage ->
                             reference.push().setValue(ChatMessage(userId = getCurrentUserId(), content = newMessage))
-                        }
+                        },
+                        onLogout = { FirebaseAuth.getInstance().signOut()
+
+                            // После разлогинивания, перенаправьте пользователя на экран входа (LoginActivity)
+                            val intent = Intent(this, LoginActivity::class.java)
+                            startActivity(intent)
+
+                            // Закройте текущую активность или выполните другие необходимые действия
+                            finish()}
                     )
                 }
             }
         }
+
     }
+
 }
 
 
-//private fun getCurrentUserNickname(callback: (UserInfo) -> Unit) {
-//    val currentUser = FirebaseAuth.getInstance().currentUser
-//    val userId = currentUser?.uid
-//
-//    if (userId != null) {
-//        // Здесь делаем запрос в базу данных, чтобы получить никнейм пользователя
-//        val userReference = FirebaseDatabase.getInstance().getReference("users").child(userId)
-//        userReference.addValueEventListener(object : ValueEventListener {
-//            override fun onDataChange(snapshot: DataSnapshot) {
-//                val nickname = snapshot.child("nickname").getValue(String::class.java) ?: ""
-//                Log.d("Nickname", "User's nickname: $nickname")
-//
-//                // Вызываем callback с информацией о пользователе
-//                callback(UserInfo(userId, nickname))
-//            }
-//
-//            override fun onCancelled(error: DatabaseError) {
-//                Log.e("Firebase", "Error fetching user data: ${error.message}", error.toException())
-//
-//                // В случае ошибки, вызываем callback с пустой информацией
-//                callback(UserInfo(userId, ""))
-//            }
-//        })
-//    } else {
-//        // В случае, если пользователь не авторизован, вызываем callback с пустой информацией
-//        callback(UserInfo("", ""))
-//    }
-//}
 
 private fun getCurrentUserId(): String {
     val currentUser = FirebaseAuth.getInstance().currentUser
@@ -237,20 +219,40 @@ fun PreviewMessageCard() {
 }
 
 @Composable
-fun Conversation(messages: List<Message>, userInfos: List<UserInfo>, onSendMessage: (String) -> Unit) {
+fun Conversation(
+    messages: List<Message>,
+    userInfos: List<UserInfo>,
+    onSendMessage: (String) -> Unit,
+    onLogout: () -> Unit // Добавляем функцию для разлогинивания
+) {
     var messageText by remember { mutableStateOf("") }
 
     LazyColumn {
+        // Добавляем кнопку разлогинивания в начало списка
+        item {
+            Button(
+                onClick = {
+                    // Вызываем функцию разлогинивания при нажатии кнопки
+                    onLogout()
+                },
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
+            ) {
+                Text("Выйти")
+            }
+        }
+
+        // Далее отображаем сообщения
         items(messages) { message ->
             MessageCard(message, userInfos)
         }
 
+        // Добавляем TextField и кнопку отправки в конец списка
         item {
-            // Добавляем TextField в конец списка
             TextField(
                 value = messageText,
                 onValueChange = {
-                    // Обновляем значение messageText при изменении текста в TextField
                     messageText = it
                 },
                 label = { Text("Введите сообщение") },
@@ -259,14 +261,10 @@ fun Conversation(messages: List<Message>, userInfos: List<UserInfo>, onSendMessa
                     .fillMaxWidth()
             )
 
-            // Кнопка для отправки сообщения
             Button(
                 onClick = {
                     if (messageText.isNotBlank()) {
-                        // Передаем текст из messageText в onSendMessage
                         onSendMessage(messageText)
-
-                        // Очищаем поле после отправки сообщения
                         messageText = ""
                     }
                 },
@@ -291,3 +289,6 @@ fun PreviewConversation() {
 //        }
 //    }
 }
+
+
+//доделать юнит тесты, сделать кнопку логаут, добавить картинки, уведомления ну и прочую фигню для баллов
