@@ -1,5 +1,5 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class
+@file:OptIn(
+    ExperimentalMaterial3Api::class
 )
 
 package com.example.lab_5
@@ -51,7 +51,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TextField
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
@@ -108,34 +107,51 @@ class MainActivity : ComponentActivity() {
                     // Ваша логика чата
                     val conversationState = remember { mutableStateOf(SampleData.conversationSample) }
 
-                    // Добавляем переменную для хранения состояния логина
-                    var isLoggedIn by remember { mutableStateOf(true) }
+                    reference.addValueEventListener(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            val messages = mutableListOf<Message>()
+                            for (childSnapshot in snapshot.children) {
+                                val userId = childSnapshot.child("userId").getValue(String::class.java)
+                                val text = childSnapshot.child("content").getValue(String::class.java)
 
-
-
-                    // Отображаем состояние чата или кнопку разлогинивания
-                    if (isLoggedIn) {
-                        Conversation(
-                            messages = conversationState.value,
-                            userInfos = userInfos,
-                            onSendMessage = { newMessage ->
-                                reference.push().setValue(ChatMessage(userId = getCurrentUserId(), content = newMessage))
-                            },
-                            onLogout = {
-                                // Вызываем разлогинивание
-                                isLoggedIn = false
-
-
+                                if (userId != null && text != null) {
+                                    val message = Message(userId, text)
+                                    messages.add(message)
+                                }
                             }
-                        )
-                    } else {
-                        // Перенаправляем на экран входа при разлогинивании
-                        LocalContext.current.startActivity(Intent(LocalContext.current, LoginActivity::class.java))
-                    }
+                            Log.d("Firebase", "Data loaded successfully: $messages")
+
+                            // Обновляем состояние списка сообщений
+                            conversationState.value = messages
+                        }
+
+                        override fun onCancelled(error: DatabaseError) {
+                            Log.e("Firebase", "Data loading cancelled: ${error.message}", error.toException())
+                        }
+                    })
+
+                    // Отображаем состояние списка сообщений
+                    Conversation(
+                        messages = conversationState.value,
+                        userInfos = userInfos, // Передаем userInfos в Conversation
+                        onSendMessage = { newMessage ->
+                            reference.push().setValue(ChatMessage(userId = getCurrentUserId(), content = newMessage))
+                        },
+                        onLogout = { FirebaseAuth.getInstance().signOut()
+
+                            // После разлогинивания, перенаправьте пользователя на экран входа (LoginActivity)
+                            val intent = Intent(this, LoginActivity::class.java)
+                            startActivity(intent)
+
+                            // Закройте текущую активность или выполните другие необходимые действия
+                            finish()}
+                    )
                 }
             }
         }
+
     }
+
 }
 
 
