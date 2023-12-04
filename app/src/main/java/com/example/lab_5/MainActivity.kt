@@ -67,6 +67,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextField
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
@@ -166,7 +167,7 @@ class MainActivity : ComponentActivity() {
 
                                 ),
 
-                            )
+                                )
                         },
                         onLogout = {
                             FirebaseAuth.getInstance().signOut()
@@ -185,101 +186,168 @@ class MainActivity : ComponentActivity() {
         }
 
     }
+}
 
 
+private fun getCurrentUserId(): String {
+    val currentUser = FirebaseAuth.getInstance().currentUser
+    return currentUser?.uid ?: ""
+}
 
-    private fun getCurrentUserId(): String {
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        return currentUser?.uid ?: ""
-    }
+@Composable
+fun MessageCard(msg: Message, userInfos: List<UserInfo>, modifier: Modifier = Modifier) {
+    Row(modifier = Modifier.padding(all = 8.dp)) {
+        Image(
+            painter = painterResource(R.drawable.clippy),
+            contentDescription = null,
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
 
-    @Composable
-    fun MessageCard(msg: Message, userInfos: List<UserInfo>) {
-        Row(modifier = Modifier.padding(all = 8.dp)) {
-            Image(
-                painter = painterResource(R.drawable.clippy),
-                contentDescription = null,
+
+        var isExpanded by remember { mutableStateOf(false) }
+
+        val surfaceColor by animateColorAsState(
+            if (isExpanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+            label = "",
+        )
+
+        // Используем userId из msg для поиска соответствующего никнейма в списке UserInfo
+        val nickname = userInfos.find { it.userId == msg.userId }?.nickname ?: ""
+
+        Column(modifier = Modifier.clickable { isExpanded = !isExpanded }) {
+            // Используем найденный никнейм вместо userId
+            Text(
+                text = nickname,
+                color = MaterialTheme.colorScheme.secondary,
+                style = MaterialTheme.typography.titleSmall
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Surface(
+                shape = MaterialTheme.shapes.medium,
+                shadowElevation = 1.dp,
+                // surfaceColor color will be changing gradually from primary to surface
+                color = surfaceColor,
+                // animateContentSize will change the Surface size gradually
                 modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
+                    .animateContentSize()
+                    .padding(1.dp)
+            ) {
 
-
-            var isExpanded by remember { mutableStateOf(false) }
-
-            val surfaceColor by animateColorAsState(
-                if (isExpanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-                label = "",
-            )
-
-            // Используем userId из msg для поиска соответствующего никнейма в списке UserInfo
-            val nickname = userInfos.find { it.userId == msg.userId }?.nickname ?: ""
-
-            Column(modifier = Modifier.clickable { isExpanded = !isExpanded }) {
-                // Используем найденный никнейм вместо userId
-                Text(
-                    text = nickname,
-                    color = MaterialTheme.colorScheme.secondary,
-                    style = MaterialTheme.typography.titleSmall
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Surface(shape = MaterialTheme.shapes.medium,
-                    shadowElevation = 1.dp,
-                    // surfaceColor color will be changing gradually from primary to surface
-                    color = surfaceColor,
-                    // animateContentSize will change the Surface size gradually
-                    modifier = Modifier.animateContentSize().padding(1.dp)) {
-
-                    msg.text?.let {
-                        Text(
-                            text = it,
-                            modifier = Modifier.padding(all = 4.dp),
-                            // If the message is expanded, we display all its content
-                            // otherwise we only display the first line
-                            maxLines = if (isExpanded) Int.MAX_VALUE else 1,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
+                msg.text?.let {
+                    Text(
+                        text = it,
+                        modifier = Modifier.padding(all = 4.dp),
+                        // If the message is expanded, we display all its content
+                        // otherwise we only display the first line
+                        maxLines = if (isExpanded) Int.MAX_VALUE else 1,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
         }
     }
+}
 
 
-    @ExperimentalMaterial3Api
-    @Composable
-    fun Conversation(
-        messages: List<Message>,
-        userInfos: List<UserInfo>,
-        onSendMessage: (String) -> Unit,
-        onLogout: () -> Unit
-    ) {
-        var messageText by remember { mutableStateOf("") }
+@ExperimentalMaterial3Api
+@Composable
+fun Conversation(
+    messages: List<Message>,
+    userInfos: List<UserInfo>,
+    onSendMessage: (String) -> Unit,
+    onLogout: () -> Unit
+) {
+    var messageText by remember { mutableStateOf("") }
 
-        LazyColumn {
-            // Кнопка разлогинивания вверху списка
-            item {
-                Box(
+    LazyColumn {
+        // Кнопка разлогинивания вверху списка
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .testTag("logoutButton")
+            ) {
+                IconButton(
+                    onClick = {
+                        onLogout()
+                    },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color.Gray)
                 ) {
-                    IconButton(
-                        onClick = {
-                            onLogout()
-                        },
+                    Image(
+                        painter = painterResource(R.drawable.ic_logout),
+                        contentDescription = "Logout",
                         modifier = Modifier
                             .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color.Gray)
+                            .clip(RoundedCornerShape(10.dp))
+                            .border(
+                                1.5.dp,
+                                MaterialTheme.colorScheme.primary,
+                                RoundedCornerShape(10.dp)
+                            )
+                    )
+                }
+            }
+        }
+
+        items(messages) { message ->
+            // Отображаем сообщения
+            MessageCard(message, userInfos, modifier = Modifier.testTag("messageCard1"))
+        }
+
+        // Кнопка отправки в конце списка
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Поле ввода
+                    TextField(
+                        value = messageText,
+                        onValueChange = {
+                            messageText = it
+                        },
+                        label = { Text("Введите сообщение") },
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 8.dp)
+                            .testTag("messageTextField")
+                    )
+
+                    // Кнопка отправки
+                    IconButton(
+                        onClick = {
+                            if (messageText.isNotBlank()) {
+                                onSendMessage(messageText)
+
+
+
+                                messageText = ""
+                            }
+                        },
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .testTag("sendButton")
                     ) {
                         Image(
-                            painter = painterResource(R.drawable.ic_logout),
-                            contentDescription = "Logout",
+                            painter = painterResource(R.drawable.ic_send),
+                            contentDescription = "Send",
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(RoundedCornerShape(10.dp))
@@ -291,75 +359,15 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
+
             }
-
-            items(messages) { message ->
-                // Отображаем сообщения
-                MessageCard(message, userInfos)
-            }
-
-            // Кнопка отправки в конце списка
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        // Поле ввода
-                        TextField(
-                            value = messageText,
-                            onValueChange = {
-                                messageText = it
-                            },
-                            label = { Text("Введите сообщение") },
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(end = 8.dp)
-                        )
-
-                        // Кнопка отправки
-                        IconButton(
-                            onClick = {
-                                if (messageText.isNotBlank()) {
-                                    onSendMessage(messageText)
-
-
-
-                                    messageText = ""
-                                }
-                            }
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.ic_send),
-                                contentDescription = "Send",
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .border(
-                                        1.5.dp,
-                                        MaterialTheme.colorScheme.primary,
-                                        RoundedCornerShape(10.dp)
-                                    )
-                            )
-                        }
-                    }
-
-                }
-            }
-
         }
 
     }
 
-
+}
 
 
 //доделать юнит тесты, сделать кнопку логаут, добавить картинки, уведомления ну и прочую фигню для баллов
 
-}
+
