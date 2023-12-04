@@ -167,7 +167,9 @@ class MainActivity : ComponentActivity() {
                                 ChatMessage(
                                     userId = getCurrentUserId(),
                                     content = newMessage
-                                )
+
+                                ),
+
                             )
                         },
                         onLogout = {
@@ -252,10 +254,12 @@ class MainActivity : ComponentActivity() {
             )
             Spacer(modifier = Modifier.width(8.dp))
 
+
+            var isExpanded by remember { mutableStateOf(false) }
             // Используем userId из msg для поиска соответствующего никнейма в списке UserInfo
             val nickname = userInfos.find { it.userId == msg.userId }?.nickname ?: ""
 
-            Column {
+            Column (modifier = Modifier.clickable { isExpanded = !isExpanded }){
                 // Используем найденный никнейм вместо userId
                 Text(
                     text = nickname,
@@ -270,6 +274,9 @@ class MainActivity : ComponentActivity() {
                         Text(
                             text = it,
                             modifier = Modifier.padding(all = 4.dp),
+                            // If the message is expanded, we display all its content
+                            // otherwise we only display the first line
+                            maxLines = if (isExpanded) Int.MAX_VALUE else 1,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -313,7 +320,6 @@ class MainActivity : ComponentActivity() {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White)
                         .padding(16.dp)
                 ) {
                     IconButton(
@@ -351,7 +357,6 @@ class MainActivity : ComponentActivity() {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White)
                         .padding(16.dp)
                 ) {
                     Row(
@@ -432,7 +437,7 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("QueryPermissionsNeeded")
     fun openCamera(activity: Activity) {
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        if (intent.resolveActivity(activity.packageManager) != null) {
+        if (intent.resolveActivity(this.packageManager) != null) {
             try {
                 activity.startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
             } catch (e: ActivityNotFoundException) {
