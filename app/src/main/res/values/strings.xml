@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">lab_5</string>
     <string name="default_notification_channel_id" translatable="false">my_channel_id</string>
+    <string name="load">последнее сообщение: загрузка...</string>
+    <string name="app_widget_name">myappwidget</string>
 </resources>
