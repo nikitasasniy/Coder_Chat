@@ -170,7 +170,7 @@ class MainActivity : ComponentActivity() {
 
                                 ),
 
-                            )
+                                )
                         },
                         onLogout = {
                             FirebaseAuth.getInstance().signOut()
@@ -256,10 +256,16 @@ class MainActivity : ComponentActivity() {
 
 
             var isExpanded by remember { mutableStateOf(false) }
+
+            val surfaceColor by animateColorAsState(
+                if (isExpanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+                label = "",
+            )
+
             // Используем userId из msg для поиска соответствующего никнейма в списке UserInfo
             val nickname = userInfos.find { it.userId == msg.userId }?.nickname ?: ""
 
-            Column (modifier = Modifier.clickable { isExpanded = !isExpanded }){
+            Column(modifier = Modifier.clickable { isExpanded = !isExpanded }) {
                 // Используем найденный никнейм вместо userId
                 Text(
                     text = nickname,
@@ -269,7 +275,13 @@ class MainActivity : ComponentActivity() {
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                Surface(shape = MaterialTheme.shapes.medium, shadowElevation = 1.dp) {
+                Surface(shape = MaterialTheme.shapes.medium,
+                    shadowElevation = 1.dp,
+                    // surfaceColor color will be changing gradually from primary to surface
+                    color = surfaceColor,
+                    // animateContentSize will change the Surface size gradually
+                    modifier = Modifier.animateContentSize().padding(1.dp)) {
+
                     msg.text?.let {
                         Text(
                             text = it,
