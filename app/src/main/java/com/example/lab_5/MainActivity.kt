@@ -82,10 +82,6 @@ class MainActivity : ComponentActivity() {
 
     private var userInfos by mutableStateOf<List<UserInfo>>(emptyList())
 
-    private val notificationManager: NotificationManager by lazy {
-        getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         FirebaseApp.initializeApp(this)
@@ -181,9 +177,6 @@ class MainActivity : ComponentActivity() {
 
                             // Закройте текущую активность или выполните другие необходимые действия
                             finish()
-                        },
-                        onOpenCamera = {
-                            openCamera(this)
                         }
 
                     )
@@ -193,47 +186,6 @@ class MainActivity : ComponentActivity() {
 
     }
 
-    private fun createNotification(title: String, message: String) {
-        val notificationId = 1 // Уникальный идентификатор уведомления
-
-        // Создаем канал уведомлений (необходимо для Android 8.0 и выше)
-        createNotificationChannel()
-
-        // Строим уведомление
-        val builder = Notification.Builder(this, CHANNEL_ID)
-            .setContentTitle(title)
-            .setContentText(message)
-            .setSmallIcon(R.drawable.ic_notification) // Замените на свою иконку уведомления
-            .setAutoCancel(true)
-
-        // Отправляем уведомление
-        notificationManager.notify(notificationId, builder.build())
-    }
-
-    private fun createNotificationChannel() {
-        // Создаем канал уведомлений (необходимо для Android 8.0 и выше)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "MyChannel",
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            notificationManager.createNotificationChannel(channel)
-        }
-    }
-
-    companion object {
-        private const val CHANNEL_ID = "my_channel_id"
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
-            val imageBitmap = data?.extras?.get("data") as Bitmap
-            // Здесь обработайте полученный imageBitmap, например, отобразите его в ImageView
-        }
-    }
 
 
     private fun getCurrentUserId(): String {
@@ -256,10 +208,16 @@ class MainActivity : ComponentActivity() {
 
 
             var isExpanded by remember { mutableStateOf(false) }
+
+            val surfaceColor by animateColorAsState(
+                if (isExpanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+                label = "",
+            )
+
             // Используем userId из msg для поиска соответствующего никнейма в списке UserInfo
             val nickname = userInfos.find { it.userId == msg.userId }?.nickname ?: ""
 
-            Column (modifier = Modifier.clickable { isExpanded = !isExpanded }){
+            Column(modifier = Modifier.clickable { isExpanded = !isExpanded }) {
                 // Используем найденный никнейм вместо userId
                 Text(
                     text = nickname,
@@ -269,7 +227,13 @@ class MainActivity : ComponentActivity() {
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                Surface(shape = MaterialTheme.shapes.medium, shadowElevation = 1.dp) {
+                Surface(shape = MaterialTheme.shapes.medium,
+                    shadowElevation = 1.dp,
+                    // surfaceColor color will be changing gradually from primary to surface
+                    color = surfaceColor,
+                    // animateContentSize will change the Surface size gradually
+                    modifier = Modifier.animateContentSize().padding(1.dp)) {
+
                     msg.text?.let {
                         Text(
                             text = it,
@@ -286,31 +250,13 @@ class MainActivity : ComponentActivity() {
     }
 
 
-    @Preview(name = "Light Mode")
-    @Preview(
-        uiMode = Configuration.UI_MODE_NIGHT_YES,
-        showBackground = true,
-        name = "Dark Mode"
-    )
-    @Composable
-    fun PreviewMessageCard() {
-//    Lab_5Theme {
-//        Surface {
-//            MessageCard(
-//                msg = Message("Lexi", "Take a look at Jetpack Compose, it's great!")
-//            )
-//        }
-//    }
-    }
-
     @ExperimentalMaterial3Api
     @Composable
     fun Conversation(
         messages: List<Message>,
         userInfos: List<UserInfo>,
         onSendMessage: (String) -> Unit,
-        onLogout: () -> Unit,
-        onOpenCamera: () -> Unit
+        onLogout: () -> Unit
     ) {
         var messageText by remember { mutableStateOf("") }
 
@@ -383,7 +329,7 @@ class MainActivity : ComponentActivity() {
                                 if (messageText.isNotBlank()) {
                                     onSendMessage(messageText)
 
-                                    createNotification("Новое сообщение", messageText)
+
 
                                     messageText = ""
                                 }
@@ -402,26 +348,6 @@ class MainActivity : ComponentActivity() {
                                     )
                             )
                         }
-                        IconButton(
-                            onClick = {
-                                onOpenCamera()
-                            },
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.ic_camera),
-                                contentDescription = "Camera",
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .border(
-                                        1.5.dp,
-                                        MaterialTheme.colorScheme.primary,
-                                        RoundedCornerShape(10.dp)
-                                    )
-                            )
-
-                        }
                     }
 
                 }
@@ -432,24 +358,7 @@ class MainActivity : ComponentActivity() {
     }
 
 
-    private val REQUEST_IMAGE_CAPTURE = 1
 
-    @SuppressLint("QueryPermissionsNeeded")
-    fun openCamera(activity: Activity) {
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        if (intent.resolveActivity(this.packageManager) != null) {
-            try {
-                activity.startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
-            } catch (e: ActivityNotFoundException) {
-                // Обработка случая, когда нет приложения для камеры
-                Toast.makeText(activity, "Приложение для камеры не найдено", Toast.LENGTH_SHORT)
-                    .show()
-            }
-        } else {
-            // Обработка случая, когда что-то пошло не так
-            Toast.makeText(activity, "Камера недоступна", Toast.LENGTH_SHORT).show()
-        }
-    }
 
 //доделать юнит тесты, сделать кнопку логаут, добавить картинки, уведомления ну и прочую фигню для баллов
 
