@@ -4,13 +4,7 @@
 
 package com.example.lab_5
 
-import android.annotation.SuppressLint
-import android.app.Activity
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.ActivityNotFoundException
-import android.content.Context
+
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -19,18 +13,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.lab_5.ui.theme.Lab_5Theme
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -40,13 +30,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.border
-import android.content.res.Configuration
-import android.graphics.Bitmap
-import android.os.Build
-import android.provider.MediaStore
 import android.util.Log
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.clickable
@@ -62,18 +46,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextField
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.*
 
 
+@ExperimentalMaterial3Api
 class MainActivity : ComponentActivity() {
 
     private val database = FirebaseDatabase.getInstance()
@@ -356,10 +338,4 @@ class MainActivity : ComponentActivity() {
         }
 
     }
-
-
-
-
-//доделать юнит тесты, сделать кнопку логаут, добавить картинки, уведомления ну и прочую фигню для баллов
-
 }
