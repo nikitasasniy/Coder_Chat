@@ -427,7 +427,7 @@ class MainActivity : ComponentActivity() {
     }
 
 
-
+    private val REQUEST_IMAGE_CAPTURE = 1
 
     @SuppressLint("QueryPermissionsNeeded")
     fun openCamera(activity: Activity) {
@@ -441,25 +441,11 @@ class MainActivity : ComponentActivity() {
                     .show()
             }
         } else {
-            // Обработка случая, когда нет приложения для камеры
+            // Обработка случая, когда что-то пошло не так
             Toast.makeText(activity, "Камера недоступна", Toast.LENGTH_SHORT).show()
         }
     }
 
-    @Preview
-    @Composable
-    fun PreviewConversation() {
-//    Lab_5Theme {
-//        Conversation(SampleData.conversationSample){ newMessage ->
-//            // Обработайте новое сообщение
-//            // Например, вы можете добавить его в список сообщений или отправить на сервер
-//            // Здесь вы можете добавить код для обработки нового сообщения
-//        }
-//    }
-    }
-
-
 //доделать юнит тесты, сделать кнопку логаут, добавить картинки, уведомления ну и прочую фигню для баллов
 
 }
-private const val REQUEST_IMAGE_CAPTURE = 1
