@@ -55,4 +55,48 @@ class ConversationTest {
         // Assuming your IconButton for send has contentDescription "Send"
         composeTestRule.onNodeWithTag("sendButton").assertIsDisplayed()
     }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Test
+    fun messagesDisplayTest() {
+        val messages = listOf(
+            Message("user1", "Hello"),
+            Message("user2", "Hi there!")
+        )
+        val userInfos = listOf(
+            UserInfo("user1", "John"),
+            UserInfo("user2", "Jane")
+        )
+
+        composeTestRule.setContent {
+            Conversation(
+                messages = messages,
+                userInfos = userInfos,
+                onSendMessage = {},
+                onLogout = {}
+            )
+        }
+
+        // Проверяем, что количество карточек сообщений соответствует количеству сообщений
+        composeTestRule.onNodeWithTag("messageCard").equals(messages.size)
+
+
+        val messageCardNodes = composeTestRule.onAllNodesWithTag("messageCard")
+        val fuckOfListNodes = listOf(messageCardNodes)
+        for (i in 0 until fuckOfListNodes.size) {
+            val node = fuckOfListNodes[i]
+            println("Node at index $i: $node.")
+        }
+
+
+// Дополнительно можно проверить текст сообщений
+// messages.forEachIndexed { index, message ->
+// val nonNullableText: String = message.text ?: ""
+// composeTestRule.onAllNodesWithTag("messageCard")[index]
+// .assertTextEquals(nonNullableText)
+// }
+
+
+    }
 }
+
