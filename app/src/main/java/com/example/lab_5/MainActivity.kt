@@ -1,5 +1,5 @@
 @file:OptIn(
-    ExperimentalMaterial3Api::class
+    ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class
 )
 
 package com.example.lab_5
@@ -259,7 +259,7 @@ fun MessageCard(
         }
 
         // Вызываем isExpanded для передачи текущего значения
-        isExpandedLocal = isExpanded()
+//        isExpandedLocal = isExpanded()
     }
 }
 
