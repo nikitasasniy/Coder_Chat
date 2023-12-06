@@ -259,7 +259,7 @@ fun MessageCard(
         }
 
         // Вызываем isExpanded для передачи текущего значения
-//        isExpandedLocal = isExpanded()
+        isExpandedLocal = isExpanded()
     }
 }
 
