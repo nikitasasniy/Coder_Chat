@@ -67,6 +67,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextField
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.google.firebase.FirebaseApp
@@ -195,7 +196,12 @@ private fun getCurrentUserId(): String {
 }
 
 @Composable
-fun MessageCard(msg: Message, userInfos: List<UserInfo>, modifier: Modifier = Modifier) {
+fun MessageCard(
+    msg: Message,
+    userInfos: List<UserInfo>,
+    modifier: Modifier = Modifier,
+    isExpanded: () -> Boolean // Функция, возвращающая текущее значение isExpanded
+) {
     Row(modifier = Modifier.padding(all = 8.dp)) {
         Image(
             painter = painterResource(R.drawable.clippy),
@@ -204,21 +210,21 @@ fun MessageCard(msg: Message, userInfos: List<UserInfo>, modifier: Modifier = Mo
                 .size(40.dp)
                 .clip(CircleShape)
                 .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                .testTag("messageCardFalse")
         )
         Spacer(modifier = Modifier.width(8.dp))
 
-
-        var isExpanded by remember { mutableStateOf(false) }
+        var isExpandedLocal by remember { mutableStateOf(false) }
 
         val surfaceColor by animateColorAsState(
-            if (isExpanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+            if (isExpandedLocal) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
             label = "",
         )
 
         // Используем userId из msg для поиска соответствующего никнейма в списке UserInfo
         val nickname = userInfos.find { it.userId == msg.userId }?.nickname ?: ""
 
-        Column(modifier = Modifier.clickable { isExpanded = !isExpanded }) {
+        Column(modifier = Modifier.clickable { isExpandedLocal = !isExpandedLocal }.testTag("textAnimate")) {
             // Используем найденный никнейм вместо userId
             Text(
                 text = nickname,
@@ -242,15 +248,18 @@ fun MessageCard(msg: Message, userInfos: List<UserInfo>, modifier: Modifier = Mo
                 msg.text?.let {
                     Text(
                         text = it,
-                        modifier = Modifier.padding(all = 4.dp),
+                        modifier = Modifier.padding(all = 4.dp).testTag("textExtensionAnimate"),
                         // If the message is expanded, we display all its content
                         // otherwise we only display the first line
-                        maxLines = if (isExpanded) Int.MAX_VALUE else 1,
+                        maxLines = if (isExpandedLocal) Int.MAX_VALUE else 1,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
         }
+
+        // Вызываем isExpanded для передачи текущего значения
+//        isExpandedLocal = isExpanded()
     }
 }
 
@@ -282,6 +291,7 @@ fun Conversation(
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(Color.Gray)
+                        .testTag("IconButton")
                 ) {
                     Image(
                         painter = painterResource(R.drawable.ic_logout),
@@ -294,6 +304,7 @@ fun Conversation(
                                 MaterialTheme.colorScheme.primary,
                                 RoundedCornerShape(10.dp)
                             )
+                            .testTag("logoutImage")
                     )
                 }
             }
@@ -301,8 +312,14 @@ fun Conversation(
 
         items(messages) { message ->
             // Отображаем сообщения
-            MessageCard(message, userInfos, modifier = Modifier.testTag("messageCard1"))
+            MessageCard(
+                msg = message,
+                userInfos = userInfos,
+                modifier = Modifier.testTag("messageCard1"),
+                isExpanded = {false}
+            )
         }
+
 
         // Кнопка отправки в конце списка
         item {
@@ -310,6 +327,7 @@ fun Conversation(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
+                    .testTag("sendButton")
             ) {
                 Row(
                     modifier = Modifier
@@ -335,15 +353,12 @@ fun Conversation(
                         onClick = {
                             if (messageText.isNotBlank()) {
                                 onSendMessage(messageText)
-
-
-
                                 messageText = ""
                             }
                         },
                         modifier = Modifier
                             .padding(16.dp)
-                            .testTag("sendButton")
+//                            .testTag("sendButton")
                     ) {
                         Image(
                             painter = painterResource(R.drawable.ic_send),
@@ -356,6 +371,7 @@ fun Conversation(
                                     MaterialTheme.colorScheme.primary,
                                     RoundedCornerShape(10.dp)
                                 )
+                                .testTag("sendImage")
                         )
                     }
                 }
