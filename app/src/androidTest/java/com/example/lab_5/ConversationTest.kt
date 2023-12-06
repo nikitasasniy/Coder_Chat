@@ -21,17 +21,13 @@ class ConversationTest {
     @OptIn(ExperimentalMaterial3Api::class)
     @Test
     fun conversationTest() {
-        // Given
         val messages = listOf(
             Message("user1", "Hello"),
-//            Message("user2", "Hi there!")
         )
         val userInfos = listOf(
             UserInfo("user1", "John"),
-//            UserInfo("user2", "Jane")
         )
 
-        // When
         composeTestRule.setContent {
             Conversation(
                 messages = messages,
@@ -41,18 +37,13 @@ class ConversationTest {
             )
         }
 
-        // Then
-        // Assuming your IconButton for logout has contentDescription "Logout"
+        // проверяем кнопку logoutButton
         composeTestRule.onNodeWithTag("logoutButton").assertIsDisplayed()
 
-        // Assuming your message cards have specific text content
-//        composeTestRule.onNodeWithTag("messageCard1").assertIsDisplayed()
-//        composeTestRule.onNodeWithTag("messageCard2").assertIsDisplayed()
-
-        // Assuming your TextField has a label "Введите сообщение"
+        // проверяем возможность заполнения поля
         composeTestRule.onNodeWithTag("messageTextField").assertIsDisplayed()
 
-        // Assuming your IconButton for send has contentDescription "Send"
+        // проверяем кнопку sendButton
         composeTestRule.onNodeWithTag("sendButton").assertIsDisplayed()
     }
 
@@ -78,25 +69,35 @@ class ConversationTest {
         }
 
         // Проверяем, что количество карточек сообщений соответствует количеству сообщений
-        composeTestRule.onNodeWithTag("messageCard").equals(messages.size)
+        composeTestRule.onNodeWithTag("messageCardFalse").equals(messages.size)
 
+        composeTestRule.onNodeWithTag("IconButton").assertIsDisplayed()
+    }
 
-        val messageCardNodes = composeTestRule.onAllNodesWithTag("messageCard")
-        val fuckOfListNodes = listOf(messageCardNodes)
-        for (i in 0 until fuckOfListNodes.size) {
-            val node = fuckOfListNodes[i]
-            println("Node at index $i: $node.")
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Test
+    fun conversationSendMessageTest() {
+        var sendMessageCalled = false
+
+        // Given
+        val messages = emptyList<Message>()
+        val userInfos = emptyList<UserInfo>()
+
+        // When
+        composeTestRule.setContent {
+            Conversation(
+                messages = messages,
+                userInfos = userInfos,
+                onSendMessage = {
+                    sendMessageCalled = true
+                },
+                onLogout = {}
+            )
         }
 
-
-// Дополнительно можно проверить текст сообщений
-// messages.forEachIndexed { index, message ->
-// val nonNullableText: String = message.text ?: ""
-// composeTestRule.onAllNodesWithTag("messageCard")[index]
-// .assertTextEquals(nonNullableText)
-// }
-
-
+        // Then
+        composeTestRule.onNodeWithTag("messageTextField").performTextInput("Hello, testing!")
+        composeTestRule.onNodeWithTag("sendButton").performClick() // проверяем отправку текста
     }
 }
 
